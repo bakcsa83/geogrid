@@ -83,7 +83,7 @@ public class GridCell implements Comparable<GridCell>, Serializable {
     public Long getID(GridCellIDType gridCellIDType) {
         Long id = this.id.getOrDefault(gridCellIDType, null);
         if (id == null) {
-            int numberOfDecimalPlaces = GridCellMetaData.getInstance().numberOfDecimalPlaces(this.getResolution(), gridCellIDType);
+            int numberOfDecimalPlaces = GridCellMetaData.numberOfDecimalPlaces(this.getResolution(), gridCellIDType);
             double precisionPerDefinition = .5 * Math.pow(10, -numberOfDecimalPlaces);
             long sgnLat = (this.lat <= -precisionPerDefinition) ? 22 : 0;
             long sgnLon = (this.lon <= -precisionPerDefinition && 180 - Math.abs(this.lon) >= precisionPerDefinition) ? 44 : 0;

@@ -12,9 +12,9 @@ public class AdaptiveIDs {
     public static void main(String[] args) throws Exception {
         for (int resolution = 1; resolution <= 22; resolution++) {
             System.out.println("====== " + resolution);
-            System.out.println(GridCellMetaData.getInstance().numberOfDecimalPlaces(resolution, GridCellIDType.NON_ADAPTIVE));
-            System.out.println(GridCellMetaData.getInstance().numberOfDecimalPlaces(resolution, GridCellIDType.ADAPTIVE_UNIQUE));
-            System.out.println(GridCellMetaData.getInstance().numberOfDecimalPlaces(resolution, GridCellIDType.ADAPTIVE_1_PERCENT));
+            System.out.println(GridCellMetaData.numberOfDecimalPlaces(resolution, GridCellIDType.NON_ADAPTIVE));
+            System.out.println(GridCellMetaData.numberOfDecimalPlaces(resolution, GridCellIDType.ADAPTIVE_UNIQUE));
+            System.out.println(GridCellMetaData.numberOfDecimalPlaces(resolution, GridCellIDType.ADAPTIVE_1_PERCENT));
         }
     }
 }
