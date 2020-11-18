@@ -22,31 +22,31 @@ public class SaveGridToDisk {
         if (!new File(SaveGridToDisk.path).exists()) new File(SaveGridToDisk.path).mkdirs();
 
         for (int r = 1; r <= resolutionMax; r++) {
-            SaveGridToDisk._log("# resolution %d", r);
+            SaveGridToDisk.log("# resolution %d", r);
 
             long x = System.currentTimeMillis();
 
             ISEA3H g = new ISEA3H(r);
             g.cellIDs(String.format("%s/grid-%d", path, r), GridCellIDType.NON_ADAPTIVE);
 
-            SaveGridToDisk._log("computation:  %d ms", System.currentTimeMillis() - x);
+            SaveGridToDisk.log("computation:  %d ms", System.currentTimeMillis() - x);
             x = System.currentTimeMillis();
 
-            SaveGridToDisk._exec("echo \"# resolution %d\" >> result.txt", r);
-            SaveGridToDisk._exec("sort --numeric-sort --merge --batch-size=100000 grid-%d.* --unique | wc -l >> result.txt", r);
-            SaveGridToDisk._exec("for i in {0..19}; do sort --numeric-sort --merge --batch-size=100000 grid-%d.face$i.* | uniq -d |  wc -l; done >> result.txt", r);
-            SaveGridToDisk._exec("rm grid-%d.*", r);
+            SaveGridToDisk.exec("echo \"# resolution %d\" >> result.txt", r);
+            SaveGridToDisk.exec("sort --numeric-sort --merge --batch-size=100000 grid-%d.* --unique | wc -l >> result.txt", r);
+            SaveGridToDisk.exec("for i in {0..19}; do sort --numeric-sort --merge --batch-size=100000 grid-%d.face$i.* | uniq -d |  wc -l; done >> result.txt", r);
+            SaveGridToDisk.exec("rm grid-%d.*", r);
 
-            SaveGridToDisk._log("evaluation:   %d ms", System.currentTimeMillis() - x);
+            SaveGridToDisk.log("evaluation:   %d ms", System.currentTimeMillis() - x);
         }
     }
 
-    private static void _log(String message, Object... args) throws IOException, InterruptedException {
+    private static void log(String message, Object... args) throws IOException, InterruptedException {
         System.out.format(message + "\n", args);
-        SaveGridToDisk._exec("echo \"%s\" >> result.log", String.format(message, args));
+        SaveGridToDisk.exec("echo \"%s\" >> result.log", String.format(message, args));
     }
 
-    private static void _exec(String cmd, Object... args) throws IOException, InterruptedException {
+    private static void exec(String cmd, Object... args) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", String.format(cmd, args));
         processBuilder.directory(new File(SaveGridToDisk.path));
         Process process = processBuilder.start();

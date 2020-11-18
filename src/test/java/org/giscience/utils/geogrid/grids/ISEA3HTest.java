@@ -8,7 +8,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- *
  * @author Franz-Benjamin Mocnik
  */
 public class ISEA3HTest {
@@ -20,10 +19,12 @@ public class ISEA3HTest {
     public void numberOfCellsByNumber() {
         this.numberOfCellsByNumber(false);
     }
+
     @Test
     public void numberOfCellsByNumberRotated() {
         this.numberOfCellsByNumber(true);
     }
+
     public void numberOfCellsByNumber(boolean rotatedProjection) {
         this._numberOfCellsByNumber(1, 20, rotatedProjection);
         this._numberOfCellsByNumber(2, 80, rotatedProjection);
@@ -32,6 +33,7 @@ public class ISEA3HTest {
         this._numberOfCellsByNumber(15, 143489060, rotatedProjection);
         this._numberOfCellsByNumber(16, 430467200, rotatedProjection);
     }
+
     public void _numberOfCellsByNumber(int resolution, int numberOfHexagonalCells, boolean rotatedProjection) {
         ISEA3H grid = new ISEA3H(resolution, rotatedProjection);
         assertEquals(grid.numberOfHexagonalCells(), numberOfHexagonalCells);
@@ -42,14 +44,17 @@ public class ISEA3HTest {
     public void numberOfCellsByArea() {
         this.numberOfCellsByArea(false);
     }
+
     @Test
     public void numberOfCellsByAreaRotated() {
         this.numberOfCellsByArea(true);
     }
+
     public void numberOfCellsByArea(boolean rotatedProjection) {
-        for (int r = 1; r < 19; r++) this._numberOfCellsByArea(r, rotatedProjection);
+        for (int r = 1; r < 19; r++) this.numberOfCellsByArea(r, rotatedProjection);
     }
-    public void _numberOfCellsByArea(int resolution, boolean rotatedProjection) {
+
+    public void numberOfCellsByArea(int resolution, boolean rotatedProjection) {
         ISEA3H grid = new ISEA3H(resolution, rotatedProjection);
         assertTrue(grid.numberOfHexagonalCells() * grid.areaOfAHexagonalCell() + grid.numberOfPentagonalCells() * grid.areaOfAPentagonalCell() - WGS84.areaOfEarth < WGS84.areaOfEarth * this._precision2);
     }
@@ -58,14 +63,17 @@ public class ISEA3HTest {
     public void numberOfCellsByGrid() throws Exception {
         this.numberOfCellsByGrid(false);
     }
+
     @Test
     public void numberOfCellsByGridRotated() throws Exception {
         this.numberOfCellsByGrid(true);
     }
+
     public void numberOfCellsByGrid(boolean rotatedProjection) throws Exception {
-        for (int r = 1; r <= 12; r++) this._numberOfCellsByGrid(r, rotatedProjection);
+        for (int r = 1; r <= 12; r++) this.numberOfCellsByGrid(r, rotatedProjection);
     }
-    public void _numberOfCellsByGrid(int resolution, boolean rotatedProjection) throws Exception {
+
+    public void numberOfCellsByGrid(int resolution, boolean rotatedProjection) throws Exception {
         ISEA3H grid = new ISEA3H(resolution, rotatedProjection);
         long cells = grid.cells().size();
         long cellsExpected = grid.numberOfHexagonalCells() + grid.numberOfPentagonalCells();
@@ -80,6 +88,7 @@ public class ISEA3HTest {
         this._pointsInGridCells(13);
         this._pointsInGridCells(16);
     }
+
     private void _pointsInGridCells(int resolution) throws Exception {
         ISEA3H grid = new ISEA3H(resolution);
         for (int i = 0; i < this._iterations; i++) {

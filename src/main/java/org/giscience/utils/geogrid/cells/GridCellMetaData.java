@@ -11,9 +11,9 @@ import java.util.Map;
  *
  * @author Franz-Benjamin Mocnik
  */public class GridCellMetaData {
-    private static GridCellMetaData _gridCellMetaData = new GridCellMetaData();
-    private static final int _maxNumberOfDecimalPlaces = 6;
-    private Map<Integer, Integer> _numberOfDecimalPlaces = new HashMap();
+    private static GridCellMetaData gridCellMetaData = new GridCellMetaData();
+    private static final int maxNumberOfDecimalPlaces = 6;
+    private Map<Integer, Integer> numberOfDecimalPlaces = new HashMap();
 
     private GridCellMetaData() {}
 
@@ -23,7 +23,7 @@ import java.util.Map;
      * @return singleton class
      */
     public static GridCellMetaData getInstance() {
-        return GridCellMetaData._gridCellMetaData;
+        return GridCellMetaData.gridCellMetaData;
     }
 
     /**
@@ -34,21 +34,21 @@ import java.util.Map;
      * @return number of decimal places
      */
     public int numberOfDecimalPlaces(int resolution, GridCellIDType gridCellIDType) {
-        if (gridCellIDType == GridCellIDType.NON_ADAPTIVE) return this._maxNumberOfDecimalPlaces;
+        if (gridCellIDType == GridCellIDType.NON_ADAPTIVE) return this.maxNumberOfDecimalPlaces;
         int nodp;
-        if (this._numberOfDecimalPlaces.containsKey(resolution)) nodp = this._numberOfDecimalPlaces.get(resolution);
+        if (this.numberOfDecimalPlaces.containsKey(resolution)) nodp = this.numberOfDecimalPlaces.get(resolution);
         else {
             double distBetweenCells = 2 * (new ISEA3H(resolution)).lowerBoundForLengthOfASideOfHexagonalCellOnSphere();
             nodp = (int)Math.ceil(-Math.log10(distBetweenCells / (2 * Math.PI * WGS84.radiusAuthalic / 360)));
-            this._numberOfDecimalPlaces.put(resolution, nodp);
+            this.numberOfDecimalPlaces.put(resolution, nodp);
         }
         switch (gridCellIDType) {
             case ADAPTIVE_UNIQUE:
-                return Math.max(Math.min(nodp, this._maxNumberOfDecimalPlaces), 0);
+                return Math.max(Math.min(nodp, this.maxNumberOfDecimalPlaces), 0);
             case ADAPTIVE_1_PERCENT:
-                return Math.max(Math.min(nodp + 2, this._maxNumberOfDecimalPlaces), 0);
+                return Math.max(Math.min(nodp + 2, this.maxNumberOfDecimalPlaces), 0);
             default:
-                return this._maxNumberOfDecimalPlaces;
+                return this.maxNumberOfDecimalPlaces;
         }
     }
 }

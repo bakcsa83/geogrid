@@ -6,33 +6,33 @@ package org.giscience.utils.geogrid.geometry;
  * @author Franz-Benjamin Mocnik
  */
 public class FaceCoordinates {
-    private final Integer _face;
-    private final Double _x;
-    private final Double _y;
+    private final Integer face;
+    private final Double x;
+    private final Double y;
 
     public FaceCoordinates(Integer face, Double x, Double y) {
-        this._face = face;
-        this._x = x;
-        this._y = y;
+        this.face = face;
+        this.x = x;
+        this.y = y;
     }
 
     public Integer getFace() {
-        return this._face;
+        return this.face;
     }
 
     public Double getX() {
-        return this._x;
+        return this.x;
     }
 
     public Double getY() {
-        return this._y;
+        return this.y;
     }
 
     public Double distanceTo(FaceCoordinates c) {
-        return Math.sqrt(Math.pow(this._x - c.getX(), 2) + Math.pow(this._y - c.getY(), 2));
+        return Math.sqrt(Math.pow(this.x - c.getX(), 2) + Math.pow(this.y - c.getY(), 2));
     }
     @Override
     public String toString() {
-        return String.format("face %d x %f y %f", this._face, this._x, this._y);
+        return String.format("face %d x %f y %f", this.face, this.x, this.y);
     }
 }
