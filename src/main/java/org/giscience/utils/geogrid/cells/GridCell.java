@@ -1,5 +1,6 @@
 package org.giscience.utils.geogrid.cells;
 
+import org.giscience.utils.geogrid.ISEA3HException;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 
 import java.io.Serializable;
@@ -18,12 +19,12 @@ public class GridCell implements Comparable<GridCell>, Serializable {
     private final double lat;
     private final double lon;
     private final boolean isPentagon;
-    private Map<GridCellIDType, Long> id = new HashMap();
+    private final Map<GridCellIDType, Long> id = new HashMap();
 
-    public GridCell(int resolution, double lat, double lon, boolean isPentagon) throws Exception {
-        if (resolution < 1 || resolution > 22) throw new Exception("resolution must be between 1 and 22");
+    public GridCell(int resolution, double lat, double lon, boolean isPentagon) throws ISEA3HException {
+        if (resolution < 1 || resolution > 22) throw new ISEA3HException("resolution must be between 1 and 22");
         this.resolution = resolution;
-        if (lat < -90 || lat > 90) throw new Exception("invalid latitude");
+        if (lat < -90 || lat > 90) throw new ISEA3HException("invalid latitude");
         if (lat < -90 + GridCell.precisionPerDefinition || lat > 90 - GridCell.precisionPerDefinition) lon = 0;
         lon %= 360;
         if (lon > 180) lon -= 360;
@@ -33,7 +34,7 @@ public class GridCell implements Comparable<GridCell>, Serializable {
         this.isPentagon = isPentagon;
     }
 
-    public GridCell(int resolution, GeoCoordinates c, boolean isPentagon) throws Exception {
+    public GridCell(int resolution, GeoCoordinates c, boolean isPentagon){
         this(resolution, c.getLat(), c.getLon(), isPentagon);
     }
 
@@ -86,7 +87,7 @@ public class GridCell implements Comparable<GridCell>, Serializable {
             double precisionPerDefinition = .5 * Math.pow(10, -numberOfDecimalPlaces);
             long sgnLat = (this.lat <= -precisionPerDefinition) ? 22 : 0;
             long sgnLon = (this.lon <= -precisionPerDefinition && 180 - Math.abs(this.lon) >= precisionPerDefinition) ? 44 : 0;
-            id = (this.isPentagon ? -1 : 1) * ((this.resolution.longValue() + sgnLat + sgnLon) * (long) Math.pow(10, 2 * numberOfDecimalPlaces + 5) + Math.abs(Math.round((this.lat + this.precision) * Math.pow(10, numberOfDecimalPlaces))) * (long) Math.pow(10, numberOfDecimalPlaces + 3) + Math.abs(Math.round((this.lon + this.precision) * Math.pow(10, numberOfDecimalPlaces))));
+            id = (this.isPentagon ? -1 : 1) * ((this.resolution.longValue() + sgnLat + sgnLon) * (long) Math.pow(10, 2 * numberOfDecimalPlaces + 5) + Math.abs(Math.round((this.lat + precision) * Math.pow(10, numberOfDecimalPlaces))) * (long) Math.pow(10, numberOfDecimalPlaces + 3) + Math.abs(Math.round((this.lon + precision) * Math.pow(10, numberOfDecimalPlaces))));
             this.id.put(gridCellIDType, id);
         }
         return id;
@@ -102,7 +103,7 @@ public class GridCell implements Comparable<GridCell>, Serializable {
 
     @Override
     public String toString() {
-        return String.format("resolution %d lat %f lon %f - %d", this.resolution, this.lat, this.lon, this.getID());
+        return String.format("resolution: %d; lat: %f; lon: %f; ID: %d", this.resolution, this.lat, this.lon, this.getID());
     }
 
     @Override
