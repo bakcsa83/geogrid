@@ -1,14 +1,13 @@
 package org.giscience.utils.geogrid.projections;
 
+import org.giscience.utils.geogrid.generic.Trigonometric;
 import org.giscience.utils.geogrid.geometry.FaceCoordinates;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
-import static org.junit.Assert.assertTrue;
-
-import org.giscience.utils.geogrid.generic.Trigonometric;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+
 /**
- *
  * @author Franz-Benjamin Mocnik
  */
 public class ISEAProjectionTest {
