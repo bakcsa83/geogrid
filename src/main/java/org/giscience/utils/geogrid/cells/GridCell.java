@@ -21,7 +21,7 @@ public class GridCell implements Comparable<GridCell>, Serializable {
     private final boolean isPentagon;
     private final Map<GridCellIDType, Long> id = new HashMap();
 
-    public GridCell(int resolution, double lat, double lon, boolean isPentagon) throws ISEA3HException {
+    public GridCell(int resolution, double lat, double lon, boolean isPentagon){
         if (resolution < 1 || resolution > 22) throw new ISEA3HException("resolution must be between 1 and 22");
         this.resolution = resolution;
         if (lat < -90 || lat > 90) throw new ISEA3HException("invalid latitude");

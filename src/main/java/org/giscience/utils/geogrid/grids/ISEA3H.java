@@ -433,7 +433,13 @@ public class ISEA3H {
                 }
                 if (success.isEmpty()) break;
             }
-            for (Map.Entry<Integer, FaceCoordinates> e : faceTodo.entrySet()) if (e.getValue() != null && !result.cellAggregator.contains(this.cellForLocation(this.projection.icosahedronToSphere(e.getValue())))) result = this.cellsForBound(result, e.getValue(), lat0, lat1, lon0, lon1);
+            for (Map.Entry<Integer, FaceCoordinates> e : faceTodo.entrySet()) {
+                if (e.getValue() == null || result.cellAggregator.contains(this.cellForLocation(this.projection.icosahedronToSphere(e.getValue())))) {
+
+                } else {
+                    result = this.cellsForBound(result, e.getValue(), lat0, lat1, lon0, lon1);
+                }
+            }
         }
 
         return result;
@@ -487,11 +493,11 @@ public class ISEA3H {
     }
 
     private interface CellAggregator<T> {
-        public abstract CellAggregator<T> cloneEmpty();
-        public abstract void add(int face, GridCell c) throws Exception;
-        public abstract void addAll(T ca);
-        public abstract int size();
-        public abstract boolean contains(GridCell c);
+        CellAggregator<T> cloneEmpty();
+        void add(int face, GridCell c) throws Exception;
+        void addAll(T ca);
+        int size();
+        boolean contains(GridCell c);
     }
 
     private class CellAggregatorByCells implements CellAggregator<CellAggregatorByCells> {
