@@ -31,7 +31,7 @@ public class Example {
         }
 
         // GRID
-        ISEA3H g = new ISEA3H(14);
+        ISEA3H g = new ISEA3H(19);
 
         // print properties of the grid
         System.out.format("number of hexagon cells: %d%n", g.numberOfHexagonalCells());
@@ -41,7 +41,7 @@ public class Example {
         System.out.println("------");
 
         // get cells in given bounds
-        Collection<GridCell> cells = g.cellsForBound(41, 42, 6, 7);
+        Collection<GridCell> cells = g.cellsForBound(41, 42, 50, 51);
         System.out.println(cells.size());
         System.out.println("------");
 
