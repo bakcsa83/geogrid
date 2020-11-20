@@ -2,7 +2,7 @@ package org.giscience.utils.geogrid.projections;
 
 import org.giscience.utils.geogrid.generic.Trigonometric;
 import org.giscience.utils.geogrid.geo.WGS84;
-import org.giscience.utils.geogrid.geometry.FaceCoordinates;
+import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 
 import java.util.ArrayList;
@@ -254,7 +254,7 @@ public class ISEAProjection {
      * @return coordinates on the icosahedron
      * @throws Exception
      */
-    public FaceCoordinates sphereToIcosahedron(GeoCoordinates c) throws Exception {
+    public FaceCoordinate sphereToIcosahedron(GeoCoordinates c) throws Exception {
         return _sphereToIcosahedron(this._changeOrientation(c));
     }
 
@@ -265,11 +265,11 @@ public class ISEAProjection {
      * @return geographic coordinates
      * @throws Exception
      */
-    public GeoCoordinates icosahedronToSphere(FaceCoordinates c) throws Exception {
+    public GeoCoordinates icosahedronToSphere(FaceCoordinate c) throws Exception {
         return this._revertOrientation(_icosahedronToSphere(c));
     }
 
-    private static FaceCoordinates _sphereToIcosahedron(GeoCoordinates c) {
+    private static FaceCoordinate _sphereToIcosahedron(GeoCoordinates c) {
         double sinLat = Trigonometric.sin(c.getLat());
         double cosLat = Trigonometric.cos(c.getLat());
         for (int face : _guessFace(c)) {
@@ -305,7 +305,7 @@ public class ISEAProjection {
             Az -= AzAdjustment;
             double x = rho * Trigonometric.sin(Az); // x
             double y = rho * Trigonometric.cos(Az); // y
-            return new FaceCoordinates(face, x, y);
+            return new FaceCoordinate(face, x, y);
         }
         return null;
     }
@@ -386,7 +386,7 @@ public class ISEAProjection {
         return result;
     }
 
-    private static GeoCoordinates _icosahedronToSphere(FaceCoordinates c) throws Exception {
+    private static GeoCoordinates _icosahedronToSphere(FaceCoordinate c) throws Exception {
         double Az = Trigonometric.atan2(c.getX(), c.getY()); // Az'
         double rho = Math.sqrt(Math.pow(c.getX(), 2) + Math.pow(c.getY(), 2)); // \rho
         double AzAdjustment = (faceOrientation(c) > 0) ? 0 : 180;
@@ -433,7 +433,7 @@ public class ISEAProjection {
      * @param fc
      * @return 1 for upright, and -1 for upside down
      */
-    public static int faceOrientation(FaceCoordinates fc) {
+    public static int faceOrientation(FaceCoordinate fc) {
         return faceOrientation(fc.getFace());
     }
 
@@ -463,11 +463,11 @@ public class ISEAProjection {
         return Trigonometric.atan2(_tan_g, (cosAz_earth + sinAz_earth * _cotTheta)); // q
     }
 
-    private static double _getLat(FaceCoordinates c) {
+    private static double _getLat(FaceCoordinate c) {
         return getLat(c.getFace());
     }
 
-    private static double _getLon(FaceCoordinates c) {
+    private static double _getLon(FaceCoordinate c) {
         return getLon(c.getFace());
     }
 

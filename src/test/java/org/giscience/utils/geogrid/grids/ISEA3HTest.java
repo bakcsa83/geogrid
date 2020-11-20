@@ -1,7 +1,7 @@
 package org.giscience.utils.geogrid.grids;
 
 import org.giscience.utils.geogrid.geo.WGS84;
-import org.giscience.utils.geogrid.geometry.FaceCoordinates;
+import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -92,8 +92,8 @@ public class ISEA3HTest {
     private void _pointsInGridCells(int resolution) throws Exception {
         ISEA3H grid = new ISEA3H(resolution);
         for (int i = 0; i < this._iterations; i++) {
-            FaceCoordinates c = new FaceCoordinates(1, Math.random() * 100 - 50, Math.random() * 100 - 50);
-            assertTrue(c.distanceTo(grid.cellForLocation(c)) <= grid.diameterOfHexagonalCellOnIcosahedron() / 2. + this._precision);
+            FaceCoordinate c = new FaceCoordinate(1, Math.random() * 100 - 50, Math.random() * 100 - 50);
+            assertTrue(c.distance(grid.cellForLocation(c)) <= grid.diameterOfHexagonalCellOnIcosahedron() / 2. + this._precision);
         }
     }
 }

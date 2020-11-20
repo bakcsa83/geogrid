@@ -1,7 +1,7 @@
 package org.giscience.utils.geogrid.projections;
 
 import org.giscience.utils.geogrid.generic.Trigonometric;
-import org.giscience.utils.geogrid.geometry.FaceCoordinates;
+import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class ISEAProjectionTest {
         p.setOrientationSymmetricEquator();
         for (int i = 0; i < this.iterations; i++) {
             GeoCoordinates c = new GeoCoordinates(Math.random() * 179.99 - 89.995, Math.random() * 360);
-            FaceCoordinates c2 = p.sphereToIcosahedron(c);
+            FaceCoordinate c2 = p.sphereToIcosahedron(c);
             GeoCoordinates c3 = p.icosahedronToSphere(c2);
             assertTrue(Math.abs(c3.getLat() - c.getLat()) < this.precision);
             assertTrue((Math.abs(c3.getLon() - c.getLon()) % 360) * Trigonometric.cos(c.getLat()) < this.precision);

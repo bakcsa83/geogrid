@@ -1,7 +1,7 @@
 package org.giscience.utils.geogrid.examples;
 
 import org.giscience.utils.geogrid.cells.GridCell;
-import org.giscience.utils.geogrid.geometry.FaceCoordinates;
+import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 import org.giscience.utils.geogrid.grids.ISEA3H;
 import org.giscience.utils.geogrid.projections.ISEAProjection;
@@ -22,7 +22,7 @@ public class Example {
         // project coordinates from the sphere to the icosahedron and back
         for (int i = 0; i < 1; i++) {
             GeoCoordinates c = new GeoCoordinates(Math.random() * 180 - 90, Math.random() * 360);
-            FaceCoordinates c2 = p.sphereToIcosahedron(c);
+            FaceCoordinate c2 = p.sphereToIcosahedron(c);
             GeoCoordinates c3 = p.icosahedronToSphere(c2);
             System.out.println(c);
             System.out.println(c2);
