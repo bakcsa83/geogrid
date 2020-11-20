@@ -10,10 +10,6 @@ import org.giscience.utils.geogrid.projections.ISEAProjection;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -296,7 +292,7 @@ public class ISEA3H {
     }
 
     public void cellIDs(String file, GridCellIDType gridCellIDType) throws Exception {
-        this.cells(new CellAggregatorByCellIDsToFile(file, gridCellIDType)).closeFile();
+        this.cells(new CellIDAggregatorToFile(file, gridCellIDType)).closeFile();
     }
 
     /**
@@ -313,8 +309,8 @@ public class ISEA3H {
      * @return cells inside the bounds
      */
     public Collection<GridCell> cellsForBound(double lat0, double lat1, double lon0, double lon1) throws Exception {
-        if (lat1 - lat0 >= 180 && lon1 - lon0 >= 360) return this.cells(new CellAggregatorByCells()).getCells();
-        else return this.cellsForBound(new CellAggregatorByCells(), lat0, lat1, lon0, lon1).cellAggregator.getCells();
+        if (lat1 - lat0 >= 180 && lon1 - lon0 >= 360) return this.cells(new CellAggregator()).getCells();
+        else return this.cellsForBound(new CellAggregator(), lat0, lat1, lon0, lon1).cellAggregator.getCells();
     }
 
     /**
@@ -334,12 +330,12 @@ public class ISEA3H {
 
     public Collection<Long> cellIDsForBound(double lat0, double lat1, double lon0, double lon1, GridCellIDType gridCellIDType) throws Exception {
         if (lat1 - lat0 >= 180 && lon1 - lon0 >= 360)
-            return this.cells(new CellAggregatorByCellIDs(gridCellIDType)).getCellIDs();
+            return this.cells(new CellIDAggregator(gridCellIDType)).getCellIDs();
         else
-            return this.cellsForBound(new CellAggregatorByCellIDs(gridCellIDType), lat0, lat1, lon0, lon1).cellAggregator.getCellIDs();
+            return this.cellsForBound(new CellIDAggregator(gridCellIDType), lat0, lat1, lon0, lon1).cellAggregator.getCellIDs();
     }
 
-    private <T extends CellAggregator> ResultCellForBound<T> cellsForBound(T ca, double lat0, double lat1, double lon0, double lon1) throws Exception {
+    private <T extends ICellAggregator> ResultCellForBound<T> cellsForBound(T ca, double lat0, double lat1, double lon0, double lon1) throws Exception {
         // compute center of bounding box
         double lat = (lat0 + lat1) / 2.;
         double lon = (lon0 + lon1 + ((lon0 <= lon1) ? 0 : 360)) / 2.;
@@ -349,7 +345,7 @@ public class ISEA3H {
         return cellsForBound(new ResultCellForBound<>(ca), fc, lat0, lat1, lon0, lon1);
     }
 
-    private <T extends CellAggregator> T cells(T ca) throws Exception {
+    private <T extends ICellAggregator> T cells(T ca) throws Exception {
         ISEA3H t = this;
         ExecutorService executor = Executors.newFixedThreadPool(this.numberOfThreads);
         List<Future<T>> futureList = new ArrayList<>();
@@ -366,7 +362,7 @@ public class ISEA3H {
         return ca;
     }
 
-    private <T extends CellAggregator> ResultCellForBound<T> cellsForBound(ResultCellForBound<T> result, FaceCoordinate fcStart, double lat0, double lat1, double lon0, double lon1) throws Exception {
+    private <T extends ICellAggregator> ResultCellForBound<T> cellsForBound(ResultCellForBound<T> result, FaceCoordinate fcStart, double lat0, double lat1, double lon0, double lon1) throws Exception {
         // if fcStart is already in result, skip the computation
         if (result.visitedCells.contains(fcStart.getFace())) return result;
         result.visitedCells.add(fcStart.getFace());
@@ -458,7 +454,7 @@ public class ISEA3H {
         return result;
     }
 
-    private <T extends CellAggregator> ResultCellForBound<T> cellsForFace(ResultCellForBound<T> result, int face) throws Exception {
+    private <T extends ICellAggregator> ResultCellForBound<T> cellsForFace(ResultCellForBound<T> result, int face) throws Exception {
         int d = ISEAProjection.faceOrientation(face);
         boolean notSwapped = (this.coordinatesNotSwapped());
 
@@ -496,155 +492,12 @@ public class ISEA3H {
         return result;
     }
 
-    private class ResultCellForBound<T extends CellAggregator> {
+    private class ResultCellForBound<T extends ICellAggregator> {
         public final T cellAggregator;
         public final Set<Integer> visitedCells = new HashSet();
 
         public ResultCellForBound(T cellAggregator) {
             this.cellAggregator = cellAggregator;
-        }
-    }
-
-    private interface CellAggregator<T> {
-        CellAggregator<T> cloneEmpty();
-
-        void add(int face, GridCell c) throws Exception;
-
-        void addAll(T ca);
-
-        int size();
-
-        boolean contains(GridCell c);
-    }
-
-    private class CellAggregatorByCells implements CellAggregator<CellAggregatorByCells> {
-        private Set<GridCell> cells = new HashSet();
-
-        @Override
-        public CellAggregator<CellAggregatorByCells> cloneEmpty() {
-            return new CellAggregatorByCells();
-        }
-
-        @Override
-        public void add(int face, GridCell c) {
-            this.cells.add(c);
-        }
-
-        @Override
-        public void addAll(CellAggregatorByCells ca) {
-            this.cells.addAll(ca.getCells());
-        }
-
-        @Override
-        public int size() {
-            return this.cells.size();
-        }
-
-        @Override
-        public boolean contains(GridCell c) {
-            return this.cells.contains(c);
-        }
-
-        public Set<GridCell> getCells() {
-            return this.cells;
-        }
-    }
-
-    private class CellAggregatorByCellIDs implements CellAggregator<CellAggregatorByCellIDs> {
-        private Set<Long> cells = new HashSet();
-        private GridCellIDType gridCellIDType;
-
-        public CellAggregatorByCellIDs(GridCellIDType gridCellIDType) {
-            this.gridCellIDType = gridCellIDType;
-        }
-
-        @Override
-        public CellAggregator<CellAggregatorByCellIDs> cloneEmpty() {
-            return new CellAggregatorByCellIDs(this.gridCellIDType);
-        }
-
-        @Override
-        public void add(int face, GridCell c) {
-            this.cells.add(c.getID(this.gridCellIDType));
-        }
-
-        @Override
-        public void addAll(CellAggregatorByCellIDs ca) {
-            this.cells.addAll(ca.getCellIDs());
-        }
-
-        @Override
-        public int size() {
-            return this.cells.size();
-        }
-
-        @Override
-        public boolean contains(GridCell c) {
-            return this.cells.contains(c.getID(this.gridCellIDType));
-        }
-
-        public Set<Long> getCellIDs() {
-            return this.cells;
-        }
-    }
-
-    private class CellAggregatorByCellIDsToFile implements CellAggregator<CellAggregatorByCellIDsToFile> {
-        private ArrayList<Long> cells = new ArrayList<>();
-        private List<CellAggregatorByCellIDsToFile> caList = new ArrayList();
-        private final String filename;
-        private GridCellIDType gridCellIDType;
-        private Integer face = null;
-        private int chunk = 0;
-        private static final int chunkSize = 10000000;
-
-        public CellAggregatorByCellIDsToFile(String filename, GridCellIDType gridCellIDType) {
-            this.filename = filename;
-            this.gridCellIDType = gridCellIDType;
-        }
-
-        @Override
-        public CellAggregator<CellAggregatorByCellIDsToFile> cloneEmpty() {
-            return new CellAggregatorByCellIDsToFile(this.filename, this.gridCellIDType);
-        }
-
-        @Override
-        public void add(int face, GridCell c) throws IOException {
-            this.face = face;
-            this.cells.add(c.getID(this.gridCellIDType));
-            if (this.cells.size() >= this.chunkSize) this.writeChunkToFile();
-        }
-
-        @Override
-        public void addAll(CellAggregatorByCellIDsToFile ca) {
-            this.caList.add(ca);
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public boolean contains(GridCell c) {
-            return false;
-        }
-
-        private void writeChunkToFile() throws IOException {
-            Collections.sort(this.cells);
-            File file = new File(this.filename + ".face" + this.face + "." + this.chunk);
-            try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
-                for (Long a : this.cells) {
-                    bufferedWriter.append(a.toString());
-                    bufferedWriter.newLine();
-                }
-            }
-            this.chunk++;
-            this.cells = new ArrayList<>();
-        }
-
-        public void closeFile() throws IOException {
-            if (this.cells.size() > 0) this.writeChunkToFile();
-            for (CellAggregatorByCellIDsToFile ca : this.caList) ca.closeFile();
         }
     }
 
