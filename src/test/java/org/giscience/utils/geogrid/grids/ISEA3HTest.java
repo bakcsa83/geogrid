@@ -96,4 +96,12 @@ public class ISEA3HTest {
             assertTrue(c.distance(grid.cellForLocation(c)) <= grid.diameterOfHexagonalCellOnIcosahedron() / 2. + this._precision);
         }
     }
+
+    @Test
+    public void perfTest() throws Exception {
+        long start=System.nanoTime();
+        ISEA3H g = new ISEA3H(16);
+        g.cellIDs();
+        System.out.println("End: "+((System.nanoTime()-start)/1000000000));
+    }
 }
