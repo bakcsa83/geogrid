@@ -492,15 +492,6 @@ public class ISEA3H {
         return result;
     }
 
-    private class ResultCellForBound<T extends ICellAggregator> {
-        public final T cellAggregator;
-        public final Set<Integer> visitedCells = new HashSet();
-
-        public ResultCellForBound(T cellAggregator) {
-            this.cellAggregator = cellAggregator;
-        }
-    }
-
     private boolean isInside(GeoCoordinates c, double lat0, double lat1, double lon0, double lon1) {
         boolean bLat = lat0 <= c.getLat() && c.getLat() <= lat1;
         boolean bLon = (lon0 <= lon1) ? lon0 <= c.getLon() && c.getLon() <= lon1 : lon0 < c.getLon() || c.getLon() < lon1;
