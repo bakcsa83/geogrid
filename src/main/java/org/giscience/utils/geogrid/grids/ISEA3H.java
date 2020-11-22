@@ -1,7 +1,6 @@
 package org.giscience.utils.geogrid.grids;
 
 import org.giscience.utils.geogrid.cells.GridCell;
-import org.giscience.utils.geogrid.cells.GridCellIDType;
 import org.giscience.utils.geogrid.generic.Tuple;
 import org.giscience.utils.geogrid.geo.WGS84;
 import org.giscience.utils.geogrid.geometry.FaceCoordinate;
@@ -264,38 +263,6 @@ public class ISEA3H {
     }
 
     /**
-     * Returns cell IDs.
-     * <p>
-     * Same as cells, apart that this method returns only IDs and is much more memory efficient.
-     *
-     * @return IDs of cells
-     */
-    public Collection<Long> cellIDs() throws Exception {
-        return this.cellIDs(GridCellIDType.NON_ADAPTIVE);
-    }
-
-    public Collection<Long> cellIDs(GridCellIDType gridCellIDType) throws Exception {
-        return this.cellIDsForBound(-90, 90, -180, 180, gridCellIDType);
-    }
-
-    /**
-     * Save cell IDs to disk.
-     * <p>
-     * For each face, one file is created. The cell IDs in the different files are not unique and non-unique IDs need to
-     * be removed.
-     *
-     * @param file prefix of the files
-     * @return IDs of cells
-     */
-    public void cellIDs(String file) throws Exception {
-        this.cellIDs(file, GridCellIDType.NON_ADAPTIVE);
-    }
-
-    public void cellIDs(String file, GridCellIDType gridCellIDType) throws Exception {
-        this.cells(new CellIDAggregatorToFile(file, gridCellIDType)).closeFile();
-    }
-
-    /**
      * Returns cells that are inside the bounds, or at least very near.
      * <p>
      * Note that the result should, in fact, include all cells whose center points are inside the given bounds, but also
@@ -313,58 +280,37 @@ public class ISEA3H {
         else return this.cellsForBound(new CellAggregator(), lat0, lat1, lon0, lon1).cellAggregator.getCells();
     }
 
-    /**
-     * Returns cell IDs that are inside the bounds, or at least very near.
-     * <p>
-     * Same as cellsForBound, apart that this method returns only IDs and is much more memory efficient.
-     *
-     * @param lat0
-     * @param lat1
-     * @param lon0
-     * @param lon1
-     * @return IDs of cells inside the bounds
-     */
-    public Collection<Long> cellIDsForBound(double lat0, double lat1, double lon0, double lon1) throws Exception {
-        return this.cellIDsForBound(lat0, lat1, lon0, lon1, GridCellIDType.NON_ADAPTIVE);
-    }
 
-    public Collection<Long> cellIDsForBound(double lat0, double lat1, double lon0, double lon1, GridCellIDType gridCellIDType) throws Exception {
-        if (lat1 - lat0 >= 180 && lon1 - lon0 >= 360)
-            return this.cells(new CellIDAggregator(gridCellIDType)).getCellIDs();
-        else
-            return this.cellsForBound(new CellIDAggregator(gridCellIDType), lat0, lat1, lon0, lon1).cellAggregator.getCellIDs();
-    }
-
-    private <T extends ICellAggregator> ResultCellForBound<T> cellsForBound(T ca, double lat0, double lat1, double lon0, double lon1) throws Exception {
+    private ResultCellForBound cellsForBound(CellAggregator ca, double lat0, double lat1, double lon0, double lon1) throws Exception {
         // compute center of bounding box
         double lat = (lat0 + lat1) / 2.;
         double lon = (lon0 + lon1 + ((lon0 <= lon1) ? 0 : 360)) / 2.;
         if (lon > 360) lon -= 360;
         FaceCoordinate fc = this.projection.sphereToIcosahedron(new GeoCoordinates(lat, lon));
         // compute
-        return cellsForBound(new ResultCellForBound<>(ca), fc, lat0, lat1, lon0, lon1);
+        return cellsForBound(new ResultCellForBound(ca), fc, lat0, lat1, lon0, lon1);
     }
 
 
 
-    private <T extends ICellAggregator> T cells(T ca) throws Exception {
+    private CellAggregator cells(CellAggregator ca) throws Exception {
         //ISEA3H t = this;
         ExecutorService executor = Executors.newFixedThreadPool(this.numberOfThreads);
-        List<Future<T>> futureList = new ArrayList<>();
+        List<Future<CellAggregator>> futureList = new ArrayList<>();
         for (int face = 0; face < ISEAProjection.numberOfFaces(); face++) {
             final int f = face;
-            futureList.add(executor.submit(new Callable<T>() {
-                public T call() throws Exception {
-                    return cellsForFace(new ResultCellForBound<T>((T) ca.cloneEmpty()), f).cellAggregator;
+            futureList.add(executor.submit(new Callable<CellAggregator>() {
+                public CellAggregator call() throws Exception {
+                    return cellsForFace(new ResultCellForBound(new CellAggregator()), f).cellAggregator;
                 }
             }));
         }
-        for (Future<T> future : futureList) ca.addAll(future.get());
+        for (Future<CellAggregator> future : futureList) ca.addAll(future.get().getCells());
         executor.shutdown();
         return ca;
     }
 
-    private <T extends ICellAggregator> ResultCellForBound<T> cellsForBound(ResultCellForBound<T> result, FaceCoordinate fcStart, double lat0, double lat1, double lon0, double lon1) throws Exception {
+    private <T extends CellAggregator> ResultCellForBound cellsForBound(ResultCellForBound result, FaceCoordinate fcStart, double lat0, double lat1, double lon0, double lon1) throws Exception {
         // if fcStart is already in result, skip the computation
 
         if (result.visitedCells.contains(fcStart.getFace())) return result;
@@ -428,7 +374,7 @@ public class ISEA3H {
                     else continue;
                     if (this.isCoordinatesInFace(fc)) {
                         success.add(ny);
-                        result.cellAggregator.add(face, this.newGridCell(gc, fc));
+                        result.cellAggregator.add(this.newGridCell(gc, fc));
                     } else {
                         if ((!hasFoundOutsideX && ny != fcn._2) || (!hasFoundOutsideY && ny == fcn._2)) {
                             if (ny != fcn._2) hasFoundOutsideX = true;
@@ -459,7 +405,7 @@ public class ISEA3H {
         return result;
     }
 
-    private <T extends ICellAggregator> ResultCellForBound<T> cellsForFace(ResultCellForBound<T> result, int face) throws Exception {
+    private <T extends CellAggregator> ResultCellForBound cellsForFace(ResultCellForBound result, int face) throws Exception {
         int d = ISEAProjection.faceOrientation(face);
         boolean notSwapped = (this.coordinatesNotSwapped());
 
@@ -490,7 +436,7 @@ public class ISEA3H {
             for (int nx = nxMin; nx <= nxMax; nx++) {
                 fc = this.getCoordinatesOfCenter(face, notSwapped ? nx : d * ny, notSwapped ? d * ny : nx, d);
                 gc = this.projection.icosahedronToSphere(fc);
-                result.cellAggregator.add(face, this.newGridCell(gc, fc));
+                result.cellAggregator.add(this.newGridCell(gc, fc));
             }
         }
 

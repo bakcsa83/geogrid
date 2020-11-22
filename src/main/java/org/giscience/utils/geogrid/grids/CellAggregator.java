@@ -2,38 +2,34 @@ package org.giscience.utils.geogrid.grids;
 
 import org.giscience.utils.geogrid.cells.GridCell;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-class CellAggregator implements ICellAggregator<CellAggregator> {
+public class CellAggregator {
     private Set<GridCell> cells = new HashSet();
 
-    @Override
-    public ICellAggregator<CellAggregator> cloneEmpty() {
-        return new CellAggregator();
+    public CellAggregator() {
     }
 
-    @Override
-    public void add(int face, GridCell c) {
-        this.cells.add(c);
+    void add(GridCell cell) {
+        cells.add(cell);
     }
 
-    @Override
-    public void addAll(CellAggregator ca) {
-        this.cells.addAll(ca.getCells());
+    void addAll(Collection<GridCell> gridCells) {
+        cells.addAll(gridCells);
     }
 
-    @Override
     public int size() {
-        return this.cells.size();
+        return cells.size();
     }
 
-    @Override
-    public boolean contains(GridCell c) {
-        return this.cells.contains(c);
+    public boolean contains(GridCell gridCell) {
+        return cells.contains(gridCell);
     }
 
     public Set<GridCell> getCells() {
-        return this.cells;
+        return cells;
     }
+
 }
