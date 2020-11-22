@@ -52,8 +52,8 @@ public class ISEA3H {
     private static final double triangleA = l0 / 2.; // l0 / 2 // half base
     private static final double triangleB = inverseSqrt3l0; // 1/\sqrt{3} * l0 // distance center point to tip
     private static final double triangleC = inverseSqrt3l0 / 2.; // 1/(2 \sqrt{3}) * l0 // distance base to center point
-    private static final double triangleBCA=(triangleB + triangleC) / triangleA; // (triangleB + triangleC) / triangleA
-    private int numberOfThreads = 8;
+    private static final double triangleBCA = (triangleB + triangleC) / triangleA; // (triangleB + triangleC) / triangleA
+    private int numberOfThreads = 2;
 
     public ISEA3H(int resolution) {
         this(resolution, true);
@@ -345,15 +345,17 @@ public class ISEA3H {
         return cellsForBound(new ResultCellForBound<>(ca), fc, lat0, lat1, lon0, lon1);
     }
 
+
+
     private <T extends ICellAggregator> T cells(T ca) throws Exception {
-        ISEA3H t = this;
+        //ISEA3H t = this;
         ExecutorService executor = Executors.newFixedThreadPool(this.numberOfThreads);
         List<Future<T>> futureList = new ArrayList<>();
         for (int face = 0; face < ISEAProjection.numberOfFaces(); face++) {
             final int f = face;
             futureList.add(executor.submit(new Callable<T>() {
                 public T call() throws Exception {
-                    return t.cellsForFace(new ResultCellForBound<T>((T) ca.cloneEmpty()), f).cellAggregator;
+                    return cellsForFace(new ResultCellForBound<T>((T) ca.cloneEmpty()), f).cellAggregator;
                 }
             }));
         }
@@ -364,15 +366,17 @@ public class ISEA3H {
 
     private <T extends ICellAggregator> ResultCellForBound<T> cellsForBound(ResultCellForBound<T> result, FaceCoordinate fcStart, double lat0, double lat1, double lon0, double lon1) throws Exception {
         // if fcStart is already in result, skip the computation
+
         if (result.visitedCells.contains(fcStart.getFace())) return result;
         result.visitedCells.add(fcStart.getFace());
 
         // prepare dNs
-        List<Tuple<Integer, Integer>> dNs = new ArrayList<>();
-        dNs.add(new Tuple(1, 1));
-        dNs.add(new Tuple(-1, 1));
-        dNs.add(new Tuple(1, -1));
-        dNs.add(new Tuple(-1, -1));
+        List<Coordinate> dNs = new ArrayList<>();
+
+        dNs.add(new Coordinate(1, 1));
+        dNs.add(new Coordinate(-1, 1));
+        dNs.add(new Coordinate(1, -1));
+        dNs.add(new Coordinate(-1, -1));
 
         // compute starting coordinates
         Tuple<Integer, Integer> fcn = this.integerForFaceCoordinates(fcStart);
@@ -397,7 +401,7 @@ public class ISEA3H {
 
         // collect cells
         int face = fcStart.getFace();
-        for (Tuple<Integer, Integer> dN : dNs) {
+        for (Coordinate dN : dNs) {
             FaceCoordinate fc;
             GeoCoordinates gc;
             Set<Integer> success = new HashSet();
@@ -406,20 +410,20 @@ public class ISEA3H {
             boolean hasFoundOutsideX = false;
             boolean hasFoundOutsideY = false;
             Map<Integer, FaceCoordinate> faceTodo = new HashMap();
-            int nx = fcn._1 - dN._1 + ((dN._1 < 0) ? dN._1 : 0);
+            int nx = fcn._1 - (int) dN.getX() + (((int) dN.getX() < 0) ? (int) dN.getX() : 0);
             while (true) {
-                nx += dN._1;
-                int ny = fcn._2 - dN._2;
+                nx += dN.getX();
+                int ny = fcn._2 - (int) dN.getY();
                 successLast = success;
-                Integer maxMinValue = (!successLast.isEmpty()) ? ((dN._2 >= 0) ? Collections.max(successLast) : Collections.min(successLast)) : null;
+                Integer maxMinValue = (!successLast.isEmpty()) ? ((dN.getY() >= 0) ? Collections.max(successLast) : Collections.min(successLast)) : null;
                 success = new HashSet<>();
                 hasFoundInside = false;
                 while (true) {
-                    ny += dN._2;
+                    ny += dN.getY();
                     fc = this.getCoordinatesOfCenter(face, nx, ny);
                     gc = this.projection.icosahedronToSphere(fc);
                     if (this.isInside(gc, lat0, lat1, lon0, lon1)) hasFoundInside = true;
-                    else if (hasFoundInside || maxMinValue == null || ((dN._2 >= 0) ? ny > maxMinValue : ny < maxMinValue))
+                    else if (hasFoundInside || maxMinValue == null || ((dN.getY() >= 0) ? ny > maxMinValue : ny < maxMinValue))
                         break;
                     else continue;
                     if (this.isCoordinatesInFace(fc)) {
@@ -430,8 +434,9 @@ public class ISEA3H {
                             if (ny != fcn._2) hasFoundOutsideX = true;
                             else hasFoundOutsideY = true;
                             FaceCoordinate fc2 = this.projection.sphereToIcosahedron(gc);
-                            if (faceTodo.containsKey(fc2.getFace())) faceTodo.put(fc2.getFace(), fc2);
-                            else {
+                            if (faceTodo.containsKey(fc2.getFace())) {
+                                faceTodo.put(fc2.getFace(), fc2);
+                            } else {
                                 int sizeBefore = result.cellAggregator.size();
                                 result = this.cellsForBound(result, fc2, lat0, lat1, lon0, lon1);
                                 if (result.cellAggregator.size() != sizeBefore) faceTodo.put(fc2.getFace(), null);
