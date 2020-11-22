@@ -126,7 +126,5 @@ public class ISEA3HTest {
         Assert.assertNotNull(testCell);
         Assert.assertEquals(testCell.getLat(),-6.205244105979422,0.0000000000000001);
         Assert.assertEquals(testCell.getLon(),125.28003578854273,   0.0000000000000001);
-
-        System.out.println("End: " + ((System.nanoTime() - start) / 1000000000));
     }
 }
