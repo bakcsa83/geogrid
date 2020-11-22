@@ -1,8 +1,15 @@
 package org.giscience.utils.geogrid.grids;
 
+import org.giscience.utils.geogrid.cells.GridCell;
 import org.giscience.utils.geogrid.geo.WGS84;
 import org.giscience.utils.geogrid.geometry.FaceCoordinate;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -98,10 +105,28 @@ public class ISEA3HTest {
     }
 
     @Test
-    public void perfTest() throws Exception {
-        long start=System.nanoTime();
-        ISEA3H g = new ISEA3H(16);
-        g.cellIDs();
-        System.out.println("End: "+((System.nanoTime()-start)/1000000000));
+    public void cellTest() throws Exception {
+        long start = System.nanoTime();
+        ISEA3H g = new ISEA3H(8);
+        Collection<GridCell> cells = g.cells();
+        Map<Long, GridCell> cellmap = new HashMap<>();
+
+        Iterator<GridCell> i = cells.iterator();
+        while (i.hasNext()) {
+            GridCell c = i.next();
+            cellmap.put(c.getID(), c);
+        }
+
+        GridCell testCell=cellmap.get(3018730356082759079L);
+        Assert.assertNotNull(testCell);
+        Assert.assertEquals(testCell.getLat(),-18.730356348906373,0.0000000000000001);
+        Assert.assertEquals(testCell.getLon(),82.7590791756899,   0.0000000000000001);
+
+        testCell=cellmap.get(3006205244125280036L);
+        Assert.assertNotNull(testCell);
+        Assert.assertEquals(testCell.getLat(),-6.205244105979422,0.0000000000000001);
+        Assert.assertEquals(testCell.getLon(),125.28003578854273,   0.0000000000000001);
+
+        System.out.println("End: " + ((System.nanoTime() - start) / 1000000000));
     }
 }
