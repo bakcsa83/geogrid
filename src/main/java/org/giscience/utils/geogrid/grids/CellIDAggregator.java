@@ -21,7 +21,17 @@ class CellIDAggregator implements ICellAggregator<CellIDAggregator> {
 
     @Override
     public void add(int face, GridCell c) {
-        this.cells.add(c.getID(this.gridCellIDType));
+        switch (this.gridCellIDType) {
+            case ADAPTIVE_1_PERCENT:
+                this.cells.add(c.getIdAdaptive1Percent());
+                break;
+            case NON_ADAPTIVE:
+                this.cells.add(c.getID());
+                break;
+            case ADAPTIVE_UNIQUE:
+                this.cells.add(c.getIdAdaptiveUnique());
+                break;
+        }
     }
 
     @Override
@@ -36,7 +46,15 @@ class CellIDAggregator implements ICellAggregator<CellIDAggregator> {
 
     @Override
     public boolean contains(GridCell c) {
-        return this.cells.contains(c.getID(this.gridCellIDType));
+        switch (this.gridCellIDType) {
+            case ADAPTIVE_1_PERCENT:
+                return this.cells.contains(c.getIdAdaptive1Percent());
+            case NON_ADAPTIVE:
+                return this.cells.contains(c.getID());
+            case ADAPTIVE_UNIQUE:
+                return this.cells.contains(c.getIdAdaptiveUnique());
+        }
+        return false;
     }
 
     public Set<Long> getCellIDs() {

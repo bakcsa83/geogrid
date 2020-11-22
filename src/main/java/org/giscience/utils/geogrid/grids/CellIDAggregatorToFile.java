@@ -33,7 +33,17 @@ class CellIDAggregatorToFile implements ICellAggregator<CellIDAggregatorToFile> 
     @Override
     public void add(int face, GridCell c) throws IOException {
         this.face = face;
-        this.cells.add(c.getID(this.gridCellIDType));
+        switch (this.gridCellIDType) {
+            case ADAPTIVE_1_PERCENT:
+                this.cells.add(c.getIdAdaptive1Percent());
+                break;
+            case NON_ADAPTIVE:
+                this.cells.add(c.getID());
+                break;
+            case ADAPTIVE_UNIQUE:
+                this.cells.add(c.getIdAdaptiveUnique());
+                break;
+        }
         if (this.cells.size() >= this.chunkSize) this.writeChunkToFile();
     }
 
