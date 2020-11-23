@@ -14,7 +14,7 @@ pipeline {
         }
     }
     post {
-            always {
+            change {
                 script {
                     emailext subject: '$DEFAULT_SUBJECT',
                              body: '$DEFAULT_CONTENT',
