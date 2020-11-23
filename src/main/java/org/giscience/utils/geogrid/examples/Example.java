@@ -1,7 +1,7 @@
 package org.giscience.utils.geogrid.examples;
 
 import org.giscience.utils.geogrid.cells.GridCell;
-import org.giscience.utils.geogrid.geometry.FaceCoordinates;
+import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 import org.giscience.utils.geogrid.grids.ISEA3H;
 import org.giscience.utils.geogrid.projections.ISEAProjection;
@@ -14,7 +14,7 @@ import java.util.Collection;
  *
  * @author Franz-Benjamin Mocnik
  */
-public class Example {
+public class Example{
     public static void main(String[] args) throws Exception {
         // PROJECTION
         ISEAProjection p = new ISEAProjection();
@@ -22,7 +22,7 @@ public class Example {
         // project coordinates from the sphere to the icosahedron and back
         for (int i = 0; i < 1; i++) {
             GeoCoordinates c = new GeoCoordinates(Math.random() * 180 - 90, Math.random() * 360);
-            FaceCoordinates c2 = p.sphereToIcosahedron(c);
+            FaceCoordinate c2 = p.sphereToIcosahedron(c);
             GeoCoordinates c3 = p.icosahedronToSphere(c2);
             System.out.println(c);
             System.out.println(c2);
@@ -31,7 +31,7 @@ public class Example {
         }
 
         // GRID
-        ISEA3H g = new ISEA3H(14);
+        ISEA3H g = new ISEA3H(19);
 
         // print properties of the grid
         System.out.format("number of hexagon cells: %d%n", g.numberOfHexagonalCells());
@@ -41,7 +41,7 @@ public class Example {
         System.out.println("------");
 
         // get cells in given bounds
-        Collection<GridCell> cells = g.cellsForBound(41, 42, 6, 7);
+        Collection<GridCell> cells = g.cellsForBound(41, 42, 50, 51);
         System.out.println(cells.size());
         System.out.println("------");
 

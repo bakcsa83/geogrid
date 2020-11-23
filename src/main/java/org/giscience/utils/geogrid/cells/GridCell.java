@@ -1,10 +1,9 @@
 package org.giscience.utils.geogrid.cells;
 
+import org.giscience.utils.geogrid.ISEA3HException;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Grid cell
@@ -12,45 +11,48 @@ import java.util.Map;
  * @author Franz-Benjamin Mocnik
  */
 public class GridCell implements Comparable<GridCell>, Serializable {
-    private static final double _precision = 1e-9;
-    private static final double _precisionPerDefinition = 1e-5;
-    private final Integer _resolution;
-    private final double _lat;
-    private final double _lon;
-    private final boolean _isPentagon;
-    private Map<GridCellIDType, Long> _id = new HashMap();
+    private static final double precision = 1e-9;
+    private static final double precisionPerDefinition = 1e-5;
+    private final Integer resolution;
+    private final double lat;
+    private final double lon;
+    private final boolean isPentagon;
 
-    public GridCell(int resolution, double lat, double lon, boolean isPentagon) throws Exception {
-        if (resolution < 1 || resolution > 22) throw new Exception("resolution must be between 1 and 22");
-        this._resolution = resolution;
-        if (lat < -90 || lat > 90) throw new Exception("invalid latitude");
-        if (lat < -90 + GridCell._precisionPerDefinition || lat > 90 - GridCell._precisionPerDefinition) lon = 0;
+    private Long idNonAdaptive;
+    private Long idAdaptiveUnique;
+    private Long idAdaptive1Percent;
+
+    public GridCell(int resolution, double lat, double lon, boolean isPentagon) {
+        if (resolution < 1 || resolution > 22) throw new ISEA3HException("resolution must be between 1 and 22");
+        this.resolution = resolution;
+        if (lat < -90 || lat > 90) throw new ISEA3HException("invalid latitude");
+        if (lat < -90 + GridCell.precisionPerDefinition || lat > 90 - GridCell.precisionPerDefinition) lon = 0;
         lon %= 360;
         if (lon > 180) lon -= 360;
         else if (lon < -180) lon += 360;
-        this._lat = lat;
-        this._lon = lon;
-        this._isPentagon = isPentagon;
+        this.lat = lat;
+        this.lon = lon;
+        this.isPentagon = isPentagon;
     }
 
-    public GridCell(int resolution, GeoCoordinates c, boolean isPentagon) throws Exception {
+    public GridCell(int resolution, GeoCoordinates c, boolean isPentagon) {
         this(resolution, c.getLat(), c.getLon(), isPentagon);
     }
 
     public Integer getResolution() {
-        return this._resolution;
+        return this.resolution;
     }
 
     public Double getLat() {
-        return this._lat;
+        return this.lat;
     }
 
     public Double getLon() {
-        return this._lon;
+        return this.lon;
     }
 
     public Boolean isPentagon() {
-        return this._isPentagon;
+        return this.isPentagon;
     }
 
     /**
@@ -66,30 +68,50 @@ public class GridCell implements Comparable<GridCell>, Serializable {
      *     longitude is per definition 0 if the latitude differs from -90 or 90 degrees by strictly less than
      *     .5e-6. The longitude is expected to be greater than -180 and strictly less than 180 degrees.</li>
      * </ul>
-     *
-     * If the grid cell type ADAPTIVE_UNIQUE is provided, the values for latitude and longitude are only encoded with
-     * the precision required to guarantee uniqueness of the IDs.  In case of ADAPTIVE_1_PERCENT, the values for
-     * latitude and longitude are encoded with two more decimal places as in the previous case.
-     *
      * The ID is only valid for resolution smaller less or equal 22.
      *
      * @return ID of the cell
      */
     public Long getID() {
-        return this.getID(GridCellIDType.NON_ADAPTIVE);
+        if (idNonAdaptive == null) {
+            idNonAdaptive = getID(GridCellIDType.NON_ADAPTIVE);
+        }
+        return idNonAdaptive;
     }
 
-    public Long getID(GridCellIDType gridCellIDType) {
-        Long id = this._id.getOrDefault(gridCellIDType, null);
-        if (id == null) {
-            int numberOfDecimalPlaces = GridCellMetaData.getInstance().numberOfDecimalPlaces(this.getResolution(), gridCellIDType);
-            double precisionPerDefinition = .5 * Math.pow(10, -numberOfDecimalPlaces);
-            long sgnLat = (this._lat <= -precisionPerDefinition) ? 22 : 0;
-            long sgnLon = (this._lon <= -precisionPerDefinition && 180 - Math.abs(this._lon) >= precisionPerDefinition) ? 44 : 0;
-            id = (this._isPentagon ? -1 : 1) * ((this._resolution.longValue() + sgnLat + sgnLon) * (long) Math.pow(10, 2 * numberOfDecimalPlaces + 5) + Math.abs(Math.round((this._lat + this._precision) * Math.pow(10, numberOfDecimalPlaces))) * (long) Math.pow(10, numberOfDecimalPlaces + 3) + Math.abs(Math.round((this._lon + this._precision) * Math.pow(10, numberOfDecimalPlaces))));
-            this._id.put(gridCellIDType, id);
+
+    /**
+     * The values for latitude and longitude are only encoded with
+     * the precision required to guarantee uniqueness of the IDs.
+     *
+     * @return ID of the cell
+     */
+    public Long getIdAdaptiveUnique() {
+        if (idAdaptiveUnique == null) {
+            idAdaptiveUnique = getID(GridCellIDType.ADAPTIVE_UNIQUE);
         }
-        return id;
+        return idAdaptiveUnique;
+    }
+
+    /**
+     * The values for
+     * latitude and longitude are encoded with two more decimal places as in the previous case.
+     *
+     * @return ID of the cell
+     */
+    public Long getIdAdaptive1Percent() {
+        if (idAdaptive1Percent == null) {
+            idAdaptive1Percent = getID(GridCellIDType.ADAPTIVE_1_PERCENT);
+        }
+        return idAdaptive1Percent;
+    }
+
+    private Long getID(GridCellIDType gridCellIDType) {
+        int numberOfDecimalPlaces = GridCellMetaData.numberOfDecimalPlaces(this.getResolution(), gridCellIDType);
+        double precisionPerDefinition = .5 * Math.pow(10, -numberOfDecimalPlaces);
+        long sgnLat = (this.lat <= -precisionPerDefinition) ? 22 : 0;
+        long sgnLon = (this.lon <= -precisionPerDefinition && 180 - Math.abs(this.lon) >= precisionPerDefinition) ? 44 : 0;
+        return (this.isPentagon ? -1 : 1) * ((this.resolution.longValue() + sgnLat + sgnLon) * (long) Math.pow(10, 2 * numberOfDecimalPlaces + 5) + Math.abs(Math.round((this.lat + precision) * Math.pow(10, numberOfDecimalPlaces))) * (long) Math.pow(10, numberOfDecimalPlaces + 3) + Math.abs(Math.round((this.lon + precision) * Math.pow(10, numberOfDecimalPlaces))));
     }
 
     public boolean equals(Object o) {
@@ -102,15 +124,15 @@ public class GridCell implements Comparable<GridCell>, Serializable {
 
     @Override
     public String toString() {
-        return String.format("resolution %d lat %f lon %f - %d", this._resolution, this._lat, this._lon, this.getID());
+        return String.format("resolution: %d; lat: %f; lon: %f; ID: %d", this.resolution, this.lat, this.lon, this.getID());
     }
 
     @Override
     public int compareTo(GridCell o) {
-        int d = Integer.compare(this._resolution, o._resolution);
+        int d = Integer.compare(this.resolution, o.resolution);
         if (d != 0) return d;
-        d = (Math.abs(this._lat - o._lat) < GridCell._precision) ? 0 : Double.compare(this._lat, o._lat);
+        d = (Math.abs(this.lat - o.lat) < GridCell.precision) ? 0 : Double.compare(this.lat, o.lat);
         if (d != 0) return d;
-        return (Math.abs(this._lon - o._lon) < GridCell._precision) ? 0 : Double.compare(this._lon, o._lon);
+        return (Math.abs(this.lon - o.lon) < GridCell.precision) ? 0 : Double.compare(this.lon, o.lon);
     }
 }
