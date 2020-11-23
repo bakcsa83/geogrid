@@ -127,4 +127,17 @@ public class ISEA3HTest {
         Assert.assertEquals(testCell.getLat(),-6.205244105979422,0.0000000000000001);
         Assert.assertEquals(testCell.getLon(),125.28003578854273,   0.0000000000000001);
     }
+
+    @Test
+    public void cellForCoordinate() throws Exception {
+        ISEA3H g = new ISEA3H(17);
+        GridCell cell=g.cellForLocation(45,150);
+    }
+
+    @Test
+    public void perfTest() throws Exception {
+        ISEA3H g = new ISEA3H(10);
+        Collection<GridCell> cells = g.cells();
+    }
+
 }
