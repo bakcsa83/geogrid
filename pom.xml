@@ -27,7 +27,7 @@
                 <configuration>
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
-                    <argLine>-Xmx10G -Xms8G -Xss10M -XX:ReservedCodeCacheSize=500M</argLine>
+                    <argLine>-Xmx4G -Xms2G -Xss10M -XX:ReservedCodeCacheSize=500M</argLine>
                 </configuration>
             </plugin>
         </plugins>
