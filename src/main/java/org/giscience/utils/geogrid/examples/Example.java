@@ -14,7 +14,7 @@ import java.util.Collection;
  *
  * @author Franz-Benjamin Mocnik
  */
-public class Example (){
+public class Example{
     public static void main(String[] args) throws Exception {
         // PROJECTION
         ISEAProjection p = new ISEAProjection();
