@@ -5,11 +5,11 @@ import org.giscience.utils.geogrid.geo.WGS84;
 import org.giscience.utils.geogrid.geometry.FaceCoordinate;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -109,35 +109,74 @@ public class ISEA3HTest {
         long start = System.nanoTime();
         ISEA3H g = new ISEA3H(8);
         Collection<GridCell> cells = g.cells();
-        Map<Long, GridCell> cellmap = new HashMap<>();
+        Map<Long, GridCell> cellMap = new HashMap<>();
 
         Iterator<GridCell> i = cells.iterator();
         while (i.hasNext()) {
             GridCell c = i.next();
-            cellmap.put(c.getID(), c);
+            cellMap.put(c.getID(), c);
         }
 
-        GridCell testCell=cellmap.get(3018730356082759079L);
+        GridCell testCell = cellMap.get(3018730356082759079L);
         Assert.assertNotNull(testCell);
-        Assert.assertEquals(testCell.getLat(),-18.730356348906373,0.0000000000000001);
-        Assert.assertEquals(testCell.getLon(),82.7590791756899,   0.0000000000000001);
+        Assert.assertEquals(testCell.getLat(), -18.730356348906373, 0.0000000000000001);
+        Assert.assertEquals(testCell.getLon(), 82.7590791756899, 0.0000000000000001);
 
-        testCell=cellmap.get(3006205244125280036L);
+        testCell = cellMap.get(3006205244125280036L);
         Assert.assertNotNull(testCell);
-        Assert.assertEquals(testCell.getLat(),-6.205244105979422,0.0000000000000001);
-        Assert.assertEquals(testCell.getLon(),125.28003578854273,   0.0000000000000001);
+        Assert.assertEquals(testCell.getLat(), -6.205244105979422, 0.0000000000000001);
+        Assert.assertEquals(testCell.getLon(), 125.28003578854273, 0.0000000000000001);
     }
 
     @Test
-    public void cellForCoordinate() throws Exception {
+    public void cellForCoordinateTest() throws Exception {
         ISEA3H g = new ISEA3H(17);
-        GridCell cell=g.cellForLocation(45,150);
+        GridCell cell = g.cellForLocation(45, 150);
+        Assert.assertEquals(1744997589150003607L,cell.getID().longValue());
     }
 
     @Test
-    public void perfTest() throws Exception {
-        ISEA3H g = new ISEA3H(10);
-        Collection<GridCell> cells = g.cells();
+    public void coordinateTest() throws Exception {
+        int testPointCount = 2000;
+        double lonStep = 350.0 / (double) testPointCount;
+        double latStep = 170.0 / (double) testPointCount;
+        Coordinate startPoint = new Coordinate(-179, -89);
+        ISEA3H g = new ISEA3H(12);
+
+        Point[] testPoints = new Point[testPointCount];
+        Set<GridCell> cells = new HashSet<>();
+        Map<Long, List<Point>> pointToCellMap = new HashMap<>();
+
+        GeometryFactory gf = new GeometryFactory();
+        for (int i = 0; i < testPointCount; i++) {
+            testPoints[i] = gf.createPoint(new Coordinate(startPoint.getX() + (lonStep * (i + 1)), startPoint.getY() + (latStep * (i + 1))));
+            GridCell cell = g.cellForLocation(testPoints[i].getY(), testPoints[i].getX());
+            cells.add(cell);
+            List<Point> pointList = pointToCellMap.get(cell.getID());
+            if (pointList == null) {
+                pointList = new ArrayList<>();
+                pointList.add(testPoints[i]);
+                pointToCellMap.put(cell.getID(), pointList);
+            } else {
+                pointList.add(testPoints[i]);
+            }
+        }
+
+        Iterator<GridCell> cellsIterator = cells.iterator();
+        Point[] cellCoordinates = new Point[cells.size()];
+        int counter = 0;
+        while (cellsIterator.hasNext()) {
+            GridCell cell = cellsIterator.next();
+            cellCoordinates[counter++] = gf.createPoint(new Coordinate(cell.getLon(), cell.getLat()));
+        }
+
+        Assert.assertEquals(1991, cellCoordinates.length);
+
+        int mappedPoints=0;
+        for(List<Point> list:pointToCellMap.values()){
+            mappedPoints+=list.size();
+        }
+        Assert.assertEquals(testPointCount,mappedPoints);
     }
 
 }
