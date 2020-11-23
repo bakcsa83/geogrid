@@ -2,12 +2,13 @@ package org.giscience.utils.geogrid.grids;
 
 import org.giscience.utils.geogrid.cells.GridCell;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class CellAggregator {
-    private Set<GridCell> cells = new HashSet();
+    //private Set<GridCell> cells = new HashSet();
+    List<GridCell> cells=new ArrayList<>();
 
     public CellAggregator() {
     }
@@ -28,7 +29,7 @@ public class CellAggregator {
         return cells.contains(gridCell);
     }
 
-    public Set<GridCell> getCells() {
+    public Collection<GridCell> getCells() {
         return cells;
     }
 
